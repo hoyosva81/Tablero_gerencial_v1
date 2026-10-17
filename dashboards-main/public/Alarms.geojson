@@ -1,0 +1,85 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -75.1,
+                    6.56
+                ]
+            },
+            "properties": {
+                "color": "orange",
+                "codigo": "sp_133",
+                "tipoDeAlerta": "Movimiento de Masa",
+                "nombreEstacion": "Escuela Sabanalarga",
+                "municipio": "Cisneros",
+                "region": "Nordeste",
+                "started_at": "2026-05-11T19:51:00+00:00",
+                "ended_at": "2026-05-12T19:51:00+00:00"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -75.1,
+                    6.56
+                ]
+            },
+            "properties": {
+                "color": "yellow",
+                "codigo": "sp_133",
+                "tipoDeAlerta": "Precipitacion",
+                "nombreEstacion": "Escuela Sabanalarga",
+                "municipio": "Cisneros",
+                "region": "Nordeste",
+                "started_at": "2026-05-11T19:51:00+00:00",
+                "ended_at": "2026-05-12T19:51:00+00:00"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -75.35,
+                    7.58
+                ]
+            },
+            "properties": {
+                "color": "yellow",
+                "codigo": "sn_1001",
+                "tipoDeAlerta": "Nivel",
+                "nombreEstacion": "Río Cauca - Cáceres.",
+                "municipio": "Cáceres",
+                "region": "Bajo Cauca",
+                "started_at": "2026-05-11T19:51:00+00:00",
+                "ended_at": "2026-05-12T19:51:00+00:00"
+            }
+        },
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    -76.64,
+                    7.87
+                ]
+            },
+            "properties": {
+                "color": "red",
+                "codigo": "sm_504",
+                "tipoDeAlerta": "Precipitacion",
+                "nombreEstacion": "Río Apartado - Universidad de Antioquia.",
+                "municipio": "Apartadó",
+                "region": "Urabá",
+                "started_at": "2026-05-11T19:51:00+00:00",
+                "ended_at": "2026-05-12T19:51:00+00:00"
+            }
+        }
+    ]
+}
