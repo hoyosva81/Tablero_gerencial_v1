@@ -2,6 +2,8 @@
 
 import json
 import os
+import threading
+import time
 import unicodedata
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
@@ -16,12 +18,12 @@ import truststore
 truststore.inject_into_ssl()
 
 import requests  # noqa: E402
-import streamlit as st  # noqa: E402
 
 from catalogos import MUNICIPIOS, SUBREGIONES, TIPOS_AGRUPADOS, TIPOS_EXCLUIDOS  # noqa: E402
 
 BASE_URL = os.environ.get("SIGRAN_BASE_URL", "https://sigran.antioquia.gov.co/api/v1")
 TTL_SEGUNDOS = 24 * 60 * 60
+REINTENTO_SEGUNDOS = 10 * 60  # si la API falla, se vuelve a intentar a los 10 min
 SNAPSHOT = Path(__file__).parent / "data" / "snapshot.json"
 BOGOTA = timezone(timedelta(hours=-5))  # Colombia no tiene horario de verano
 
@@ -33,6 +35,7 @@ class Datos:
     municipios_geojson: dict | None
     consultado: datetime
     desde_respaldo: bool = False
+    aviso: str | None = None
 
 
 def _get(ruta: str) -> list[dict]:
@@ -137,10 +140,8 @@ def construir(crudo: dict) -> Datos:
     )
 
 
-@st.cache_data(ttl=TTL_SEGUNDOS, show_spinner="Consultando la API de SIGRAN…")
 def cargar_api() -> Datos:
-    """Datos frescos de la API, en caché 24 h. Si la API falla lanza la excepción,
-    que st.cache_data no guarda, así el siguiente intento vuelve a consultarla."""
+    """Datos frescos de la API; guarda el respaldo si respondieron las tres rutas."""
     crudo = descargar_crudo()
     if crudo["municipios"] and crudo["regiones"]:
         SNAPSHOT.parent.mkdir(exist_ok=True)
@@ -155,3 +156,33 @@ def cargar_respaldo() -> Datos | None:
     datos = construir(json.loads(SNAPSHOT.read_text(encoding="utf-8")))
     datos.desde_respaldo = True
     return datos
+
+
+_cache: dict = {"datos": None, "vence": 0.0}
+_candado = threading.Lock()
+
+
+def obtener(forzar: bool = False) -> Datos:
+    """Datos con caché en memoria de 24 h, compartida por todas las sesiones.
+
+    Si la API falla se usa el respaldo en disco (con `aviso`) y se reintenta a los
+    10 minutos. Lanza la excepción solo si tampoco hay respaldo. El candado evita
+    que varias sesiones consulten la API a la vez cuando vence la caché.
+    """
+    with _candado:
+        ahora = time.monotonic()
+        if not forzar and _cache["datos"] is not None and ahora < _cache["vence"]:
+            return _cache["datos"]
+        try:
+            datos, vigencia = cargar_api(), TTL_SEGUNDOS
+        except Exception as exc:  # la API puede fallar de muchas formas; no se cae el tablero
+            datos = cargar_respaldo()
+            if datos is None:
+                raise
+            datos.aviso = (
+                f"No se pudo consultar la API de SIGRAN ({type(exc).__name__}). "
+                f"Se muestran los datos guardados el {datos.consultado:%d/%m/%Y %H:%M}."
+            )
+            vigencia = REINTENTO_SEGUNDOS
+        _cache.update(datos=datos, vence=ahora + vigencia)
+        return datos
